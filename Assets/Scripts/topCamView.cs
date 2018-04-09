@@ -6,6 +6,7 @@ public class topCamView : MonoBehaviour {
     // Use this for initialization
     public Transform perPrefab;
     public Transform fpsCam;
+    public Transform sceneLayouter;
 
     private Transform person;
     private float speed = 0.1f;
@@ -15,9 +16,10 @@ public class topCamView : MonoBehaviour {
     void Start () {
         person = Instantiate(perPrefab);
         personHeight = fpsCam.GetComponent<fpsController>().personHeight;
-
+        Vector2 roomSize = sceneLayouter.GetComponent<layoutScene>().get_roomSize();
+        transform.localPosition = new Vector3(.0f, Mathf.Max(roomSize.x,roomSize.y)/2+100, .0f);
     }
-	void OnEnable()
+	public void onSwitchCam()
     {
         person.SetPositionAndRotation(fpsCam.position, fpsCam.rotation);
     }

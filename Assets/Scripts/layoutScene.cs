@@ -11,18 +11,23 @@ public class layoutScene : MonoBehaviour {
     private List<Transform> objects;
     private int objCount;
     private int schemeCount;
-    
+
     public Transform wallPrefab;
     public Transform focalPrefab;
     public Transform obsPrefab;
     public Transform objPrefab;
-    // Use this for initialization
-    void Start () {
+
+    void Awake()
+    {
         filename = Application.dataPath + "/InputData/intermediate/recommendation.txt";
         recomParameters = new List<float[]>();
         objectParams = new List<float[]>();
         objects = new List<Transform>();
         InitiallayoutOnScreen();
+    }
+    // Use this for initialization
+    void Start () {
+
     }
 	
 	// Update is called once per frame
@@ -53,6 +58,10 @@ public class layoutScene : MonoBehaviour {
             obj.localScale = new Vector3(sx, sy, sz);
             objects.Add(obj);
         }
+    }
+    public Vector2 get_roomSize()
+    {
+        return new Vector2(floor.localScale.x, floor.localScale.z);
     }
     private float dist_of_points(float x1, float y1, float x2, float y2)
     {

@@ -15,7 +15,7 @@ public class fpsController : MonoBehaviour {
         transform.SetPositionAndRotation(new Vector3(.0f, personHeight, .0f), Quaternion.identity);
 	}
 
-    void OnEnable()
+    public void onSwitchCam()
     {
         if (firstTime)
         {

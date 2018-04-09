@@ -14,8 +14,18 @@ public class switchCam : MonoBehaviour {
 	void Update () {
         if (Input.GetKeyDown(KeyCode.V))
         {
-            topCam.enabled = !topCam.enabled;
-            fpsCam.enabled = !fpsCam.enabled;
+            if (topCam.enabled)
+            {
+                topCam.enabled = false;
+                fpsCam.enabled = true;
+                fpsCam.GetComponent<fpsController>().onSwitchCam();
+            }
+            else
+            {
+                topCam.enabled = true;
+                fpsCam.enabled = false;
+                topCam.GetComponent<topCamView>().onSwitchCam();
+            }
         }
     }
 
