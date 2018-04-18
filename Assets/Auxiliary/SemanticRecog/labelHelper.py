@@ -1,5 +1,8 @@
 import numpy as np
 import cv2
+from scipy import stats
+import matplotlib.pyplot as plt
+from utils import rotateAroundPoint
 from plotHelper import drawBoundingBox
 from depth2HeightMskHelper import getObstacleMask, RemoveContourOverlapping, getContourHeight
 
@@ -64,16 +67,64 @@ class labelHelper(object):
         else:
             return False
         labelImg = cv2.resize(labelImg, (self.img2Height.shape[1], self.img2Height.shape[0]), interpolation=cv2.INTER_NEAREST).astype(int)
-        # decoded = self.classifier.dataset.decode_segmap(labelImg)
+        decoded = self.classifier.dataset.decode_segmap(labelImg)
         # cv2.imshow("resized", decoded)
         # cv2.waitKey(0)
         if(forwardMethod):
             self.getObstacleLabels(labelImg)
         else:
             self.getObstacleRealWorld(labelImg)
+    # x,y in ecludian coords
+    def fitWall(self, xdata, ydata, xbound):
+        #s1 figure out single wall or two
+        x_ymax = xdata[np.argmax(ydata)]
+        x_min_pos, x_max_pos = np.argmin(xdata), np.argmax(xdata)
+        x_min, y_min = xdata[x_min_pos], ydata[x_min_pos]
+        x_max, y_max = xdata[x_max_pos], ydata[x_max_pos]
+
+        if(x_ymax > x_min and x_ymax < x_max):#split
+            xdata,ydata = xdata[np.where(xdata<x_ymax)], ydata[np.where(xdata<x_ymax)]
+            self.rotWallCenter = [x_ymax, np.max(ydata)]
+        else:
+            self.rotWallCenter = [(x_min + x_max)/2, (y_min + y_max)/2]
+        slope, intercept, r_value, p_value, std_err = stats.linregress(xdata, ydata)
+        angle = np.arctan(slope)
+        cs,se = np.cos(angle),np.sin(angle)
+        x_rot_test,_ = rotateAroundPoint(self.rotWallCenter, np.array([[x_min, x_max],[y_min, y_max]]), se, cs)
+        if(x_rot_test[0]>-xbound and x_rot_test[1]<xbound):
+            self.wallMatrix = np.array([[cs, -se],[se, cs]])
+        else:
+            self.wallMatrix = np.array([[cs, se],[-se, cs]])
+        # xrot, yrot = rotateAroundPoint(center, np.vstack([xdata, ydata]),self.wallMatrix[1,0],self.wallMatrix[0,0])
+        # slope2, intercept2, r_value2, p_value2, std_err2= stats.linregress(xrot, yrot)
+
+        # plt.plot(xrot, yrot, 'o', label='original data')
+        # plt.plot(xrot, intercept2 + slope2*xrot, 'r', label='fitted line')
+        # plt.legend()
+        # plt.show()
+
+        # plt.plot(xdata, ydata, 'o', label='original data')
+        # plt.plot(xdata, intercept + slope*xdata, 'r', label='fitted line')
+        # plt.legend()
+        # plt.show()
     def getObstacleRealWorld(self, labelImg):
         denoteList =[n for n in np.unique(labelImg) if n not in [1,8,9,11]]
-        # denoteList =np.unique(labelImg)
+        # WALL
+        wallMat = np.zeros(self.sceneMat.shape)
+        ybound, xbound = self.sceneMat.shape[0] /2, self.sceneMat.shape[1] /2
+        xdata,ydata = [],[]
+        for cate in [8,9]:
+            mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
+            for loc in mappedLoc:
+                xdata.append(int(loc[1]/self.shrinkF))
+                ydata.append(int(loc[0]/self.shrinkF))
+                wallMat[ydata[-1],xdata[-1]] = 255
+        xdata = (np.array(xdata) - xbound).astype(int)
+        ydata = (ybound - np.array(ydata)).astype(int)
+        # cv2.imshow("wall", wallMat)
+        # cv2.waitKey(0)
+        self.fitWall(xdata, ydata,xbound)
+
         for cate in denoteList:
             mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
             for loc in mappedLoc:
@@ -91,9 +142,9 @@ class labelHelper(object):
             self.sceneMatList.append(cate_sceneMat)
         self.boxLabel = denoteList
 
-        cv2.imshow("label",self.sceneMat)
+        # cv2.imshow("label",self.sceneMat)
         # cv2.imshow("height",self.heightMap)
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
         self.getObstacleMaskFromLabeledMask()
 
     def getObstacleMaskFromLabeledMask(self):
@@ -252,8 +303,26 @@ class labelHelper(object):
                     self.mergeIdx.append(index[0][lst])
         self.boundingBoxes = np.array(mergedBoxes)
         self.mergedLables = mergedLables
-
+    def alignWall(self):
+        # rgbView =  np.zeros([self.sceneMat.shape[0],self.sceneMat.shape[1],3],dtype= np.uint8)
+        rotBoxes = []
+        rotRects = []
+        ybound, xbound = self.sceneMat.shape[0] /2, self.sceneMat.shape[1] /2
+        for i,box in enumerate(self.rotatedBox):
+            xdata = (np.array(box).T[0] - xbound).astype(int)
+            ydata = (ybound - np.array(box).T[1]).astype(int)
+            xrot, yrot = rotateAroundPoint(self.rotWallCenter, np.vstack([xdata,ydata]), self.wallMatrix[1,0],self.wallMatrix[0,0])
+            xrot = xrot+xbound
+            yrot = ybound - yrot
+            rotBoxes.append(np.vstack([xrot,yrot]).astype(int).T)
+            rotRects.append([(xrot[0] + xrot[2])/2, (yrot[0] + yrot[2])/2, self.rotatedRect[i][1][0], self.rotatedRect[i][1][1], self.rotatedRect[i][2] +np.rad2deg(np.arccos(self.wallMatrix[0,0]))])
+        self.alignedRotBox = rotBoxes
+        self.alignedRotRect = rotRects
+        # res = cv2.drawContours(rgbView, rotBoxes, -1,  (0,255,0), 2)
+        # cv2.imshow("aftRot", rgbView)
+        # cv2.waitKey(0)
     def writeObstacles2File(self, filename):
+        self.alignWall()
         rotatedBox = np.array(self.rotatedBox, dtype=float)
         prefix = 'objFixed : '
         prefix2 = 'group: '
