@@ -301,7 +301,7 @@ class labelHelper(object):
             xrot = xrot+xbound
             yrot = ybound - yrot
             rotBoxes.append(np.vstack([xrot,yrot]).astype(int).T)
-            rotRects.append([(xrot[0] + xrot[2])/2, (yrot[0] + yrot[2])/2, self.rotatedRect[i][1][0], self.rotatedRect[i][1][1], -(self.rotatedRect[i][2] + alignAngle]))
+            rotRects.append([(xrot[0] + xrot[2])/2, (yrot[0] + yrot[2])/2, self.rotatedRect[i][1][0], self.rotatedRect[i][1][1], -(self.rotatedRect[i][2] + alignAngle)])
         self.alignedRotBox = rotBoxes
         self.alignedRotRect = rotRects
         res = cv2.drawContours(rgbView, rotBoxes, -1,  (0,255,0), 2)
