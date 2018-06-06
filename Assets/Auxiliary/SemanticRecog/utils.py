@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import imageio
+
 from camera import processCamMat, getCameraParam
 def rotateAroundPoint(center, pos, s, c):
     #translate point back to origin:
@@ -29,8 +29,8 @@ def setupInputMatrix(depthAddr, rawDepthAddr, camAddr):
         with open(camAddr, 'r') as camf:
             cameraMatrix = processCamMat(camf.readlines())
     # cameraMatrix = np.array([[518.857901, 0.000000, 284.582449],[0.000000, 519.469611, 208.736166],[0.000000, 0.000000, 1.000000]])
-    depthImage = imageio.imread(depthAddr).astype(float)/100
-    rawDepth = imageio.imread(rawDepthAddr).astype(float)/1000
+    depthImage = misc.imread(depthAddr, mode='F').astype(float)/100
+    rawDepth = misc.imread(rawDepthAddr, mode='F').astype(float)/1000
     missingMask = (rawDepth == 0)
     return depthImage,missingMask,cameraMatrix
 

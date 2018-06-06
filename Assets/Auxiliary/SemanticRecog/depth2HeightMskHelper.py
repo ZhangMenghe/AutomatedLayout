@@ -3,7 +3,7 @@ import cv2
 import math
 from depthImgProcessor import processDepthImage
 from utils import setupInputMatrix,non_max_supression
-from plotHelper import plot3dHeightMap
+# from plotHelper import plot3dHeightMap
 from utils import rotatePC
 def getContourHeight(obstaclBoxes, heightMap):
     contourHeights = []
