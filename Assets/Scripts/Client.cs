@@ -36,7 +36,7 @@ public class Client : MonoBehaviour
     System.Net.Sockets.TcpClient client;
 
      private Thread exchangeThread;
-     System.Net.Sockets.NetworkStream stream;
+     public System.Net.Sockets.NetworkStream stream;
 #endif
 
      private Byte[] bytes = new Byte[256];
@@ -46,6 +46,7 @@ public class Client : MonoBehaviour
      public int cycleWaited = 50;
      public string host = null;
      public string port = null;
+    public bool doRead = false;
 
     private string received = null;
     public void Connect(string host, string port)
@@ -135,7 +136,7 @@ public class Client : MonoBehaviour
      private bool sendingData = false;
      private bool exchanging = false;
      private bool exchangeStopRequested = false;
-     private string lastPacket = null;
+     public string lastPacket = null;
 
      private string errorStatus = null;
      private string warningStatus = null;
@@ -216,7 +217,10 @@ public class Client : MonoBehaviour
      }
      
      public String receive(){
-        received = "1 0 4 150.000000 200.000000 30.000000 46.023277 -74.989998 0.000000 1.570796 -99.989998 37.748737 0.000000 1.570796 -75.431366 74.989998 0.000000 1.570796";
+        received = "1 0 4 180 200 90 -24.327446 -59.990002 0.000000 1.570796 82.000679 59.990002 0.000000 1.570796 -36.601913 -59.990002 0.000000 1.570796";
+        //received = "1 0 0 50 40 70 0 0 0 0";
+        //received = "1 0 8 120 60 80 0 0 0 0";
+        //received = "家具数，id, cate, width ,height, zheight + (recommendation) cx, cy, cz, rot"
         return received;
     }
 
@@ -234,12 +238,13 @@ public class Client : MonoBehaviour
 #if UNITY_EDITOR
             byte[] bytes = new byte[client.SendBufferSize];
             int recv = 0;
-            while (true)
+            if (doRead)
             {
                 recv = stream.Read(bytes, 0, client.SendBufferSize);
                 received += Encoding.UTF8.GetString(bytes, 0, recv);
-                if (received.EndsWith("\n")) break;
+                doRead = false;
             }
+             
 #else
                try
                {
@@ -253,7 +258,7 @@ public class Client : MonoBehaviour
 #endif
 
                lastPacket = received;
-               Debug.Log("Read data: " + received);
+               Debug.Log("Read data: " + received.Length + " characters");
                sendingData = false;
                exchanging = false;
           }

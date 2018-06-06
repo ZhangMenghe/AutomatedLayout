@@ -7,16 +7,20 @@ WALL_Id zheight vertices zrotation
 4 10 200.000000 0.000000 200.000000 -150.000000 0
 FURNITURE_Id Category Height ObjWidth ObjHeight
 0 0 10 50 50
+Recommendation2 -8.110997 54.551388 0
 Recommendation1 -100.000000 100.000000 0
 FURNITURE_Id Category Height ObjWidth ObjHeight
 1 0 10 50 50
+Recommendation2 -37.634193 -62.219227 0
 Recommendation1 -100.000000 -100.000000 0
 FURNITURE_Id Category Height ObjWidth ObjHeight
 2 4 10 100 50
-Recommendation1 -149.990005 -17.000000 0
+Recommendation2 -77.999969 124.989937 1.27952e-06
+Recommendation1 -174.989975 -62.999985 1.5708
 FURNITURE_Id Category Height ObjWidth ObjHeight
-3 7 10 150 50
-Recommendation1 42.000046 -74.989983 1.5708
+3 7 10 150 100
+Recommendation2 -149.989960 -73.999969 1.5708
+Recommendation1 110.000061 -99.989906 1.27952e-06
 Obstacle Vertices
 Point_Focal Position
 0 0.000000 150.000000

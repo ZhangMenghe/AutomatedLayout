@@ -23,7 +23,7 @@ public class layoutScene : MonoBehaviour {
     public Transform wallPrefab;
     public Transform focalPrefab;
     public Transform obsPrefab;
-    public Transform objPrefab;
+    //public Transform objPrefab;
     public List<int> customObjList = new List<int>();
     public String pythonEnv;
     public String IP_ADDR;
@@ -32,9 +32,16 @@ public class layoutScene : MonoBehaviour {
     private List<int> cateObjRecords = new List<int>();
     private string[] receviedWords;
     private bool unProcess = true;
+    private List<Vector3> initialRotation =
+                          new List<Vector3> { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0),
+                                              new Vector3(0, 0, 0), new Vector3(-90, 180, 0), new Vector3(0, 0, 0),
+                                              new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 90)};
+
+    public List<Transform> objPrefabList;
+
     void Awake()
     {
-        recommendationFile = "E:/recommendation-nr.txt";
+        //recommendationFile = "E:/recommendation-nr.txt";
         //recommendationFile = Application.dataPath + "/InputData/intermediate/recommendation.txt";
         //pythonProgramFile = Directory.GetCurrentDirectory() + "/Auxiliary/SemanticRecog/depth2mask.py";
         //
@@ -55,9 +62,15 @@ public class layoutScene : MonoBehaviour {
     }
     void Update()
     {
-        if(null != TcpClient.receive() && unProcess){
-            receviedWords = TcpClient.receive().Split(' ');
+        //todo: this is debug only!! dummy to add a bed only
+        string received = TcpClient.receive();
+        //string received = TcpClient.lastPacket;
+        if (null != received && received.Length > 0 && unProcess){
+            receviedWords = received.Split(' ');
+            TcpClient.lastPacket = "";
             objCount = int.Parse(receviedWords[0]);
+            if (objCount < 1)
+                return;
             for(int i=0; i<objCount; i++){
                 float[] tmpObj = new float[5];
                 for (int j = 1; j <= 5; j++)
@@ -96,21 +109,47 @@ public class layoutScene : MonoBehaviour {
         parser_resfile();
         //resize_room("RoomSize: 400 300");
     }
+    //param: id, cate, width, height, zheight
+    private void draw_a_furniture(float[] param)
+    {
+        
+    }
     public void ChangeRecommendation()
     {
         currentRecId = (currentRecId + 1) % schemeCount;
         for(int i=0;i<objCount;i++)
         {
+            int cate = (int)objectParams[i][1];
+            Transform objPrefab = objPrefabList[cate];
             float[] param = recomParameters[schemeCount * i + currentRecId];
-            float sx = objectParams[i][3], sy = objectParams[i][4], sz = objectParams[i][2];
-            float cx = param[0], cy = sy/2, cz = param[1];
-            float rot = param[2] / Mathf.PI * 180;
+            float sx = objectParams[i][2], sy = objectParams[i][4], sz = objectParams[i][3];
+
+            BoxCollider box = objPrefab.GetComponent<BoxCollider>();
+            float box_x, box_y, box_z, box_cy;
+            if (Mathf.Abs(initialRotation[cate].x % 360) == 90) { box_x = box.size.x; box_y = box.size.z; box_z = box.size.y; box_cy = box.center.z; }
+            else if (Mathf.Abs(initialRotation[cate].y % 360) == 90) { box_x = box.size.z; box_y = box.size.y; box_z = box.size.x; box_cy = box.center.y; }
+            else if (Mathf.Abs(initialRotation[cate].z % 360) == 90) { box_x = box.size.y; box_y = box.size.z; box_z = box.size.x; box_cy = box.center.z; }
+            else { box_x = box.size.x; box_y = box.size.y; box_z = box.size.z; box_cy = box.center.y; }
+           // Quaternion rotation = Quaternion.Euler(initialRotation[cate]);
+           // Matrix4x4 m = Matrix4x4.Rotate(rotation);
+           // new Vector3 test = m.MultiplyPoint3x4(new Vector);
+            sx /= 100 * box_x; sy /= 100 * box_y; sz /= 100 * box_z;
+
+            float cx = param[0], cy = sy * (box_y + box_cy)/2, cz = param[1];
+
+            float roty = initialRotation[cate].y + param[3] / Mathf.PI * 180;
+
+
             if (objects.Count > i)
             {
-                objects[i].SetPositionAndRotation(new Vector3(cx, cy, cz), Quaternion.Euler(new Vector3(.0f, rot, .0f)));
+                objects[i].SetPositionAndRotation(new Vector3(cx / 100, cy, cz / 100), Quaternion.Euler(new Vector3(initialRotation[cate].x, roty, initialRotation[cate].z)));
                 return;
             }
-            Transform obj = Instantiate(objPrefab, new Vector3(cx, cy, cz), Quaternion.Euler(new Vector3(.0f, rot, .0f)));
+            
+            
+            Transform obj = Instantiate(objPrefab, new Vector3(cx / 100, cy, cz / 100), Quaternion.Euler(new Vector3(initialRotation[cate].x, roty, initialRotation[cate].z)));
+
+            
             obj.localScale = new Vector3(sx, sy, sz);
             objects.Add(obj);
         }
@@ -128,16 +167,15 @@ public class layoutScene : MonoBehaviour {
     {
         float cx = (param[2] + param[4]) / 2;
         float cz = (param[3] + param[5]) / 2;
-        float cy = 50;
         float rot;
         if (param[6] < 0)
             rot = -param[6]/Mathf.PI * 180;
         else
             rot = param[6] / Mathf.PI * 180;
-        float sx = dist_of_points(param[2], param[3], param[4], param[5]);
-        float sy = 100;
-        float sz = 10;
-        Transform wall = Instantiate(wallPrefab, new Vector3(cx, cy, cz), Quaternion.Euler(new Vector3(.0f, rot, .0f)));
+        float sx = dist_of_points(param[2], param[3], param[4], param[5])/100;
+        float sy = 3;
+        float sz = 0.1f;
+        Transform wall = Instantiate(wallPrefab, new Vector3(cx/100, sy/2, cz/100), Quaternion.Euler(new Vector3(.0f, rot, .0f)));
         wall.localScale = new Vector3(sx, sy, sz);
     }
     // todo: test
@@ -170,7 +208,7 @@ public class layoutScene : MonoBehaviour {
     {
         string[] roomWords = roomStr.Split(' ');
         float width = float.Parse(roomWords[1]); float height = float.Parse(roomWords[2]);
-        floor.localScale = new Vector3(width, floor.localScale.y, height);
+        floor.localScale = new Vector3(width/100, floor.localScale.y, height/100);
     }
 
     private float[] getParametersFromWords(string[] words)
@@ -184,10 +222,21 @@ public class layoutScene : MonoBehaviour {
             
         return res.ToArray();
     }
+    private string[] debug_emulator_wall()
+    {
+        string[] contents = new string[6];
+        contents[0] = "RoomSize: 400 300";
+        contents[1] = "WALL_Id zheight vertices zrotation";
+        contents[2] = "0 20 -200.000000 150.000000 200.000000 150.000000 0";
+        contents[3] = "1 20 -200.000000 -150.000000 -200.000000 150.000000 1.5708";
+        contents[4] = "2 20 200.000000 -150.000000 200.000000 150.000000 1.5708";
+        contents[5] = "3 20 -200.000000 -150.000000 200.000000 -150.000000 0";
+        return contents;
+    }
     private void parser_resfile()
     {
-        string[] contents = System.IO.File.ReadAllLines(recommendationFile);
-
+       // string[] contents = System.IO.File.ReadAllLines(recommendationFile);
+        string[] contents = debug_emulator_wall();
         // tackle with roomsize
         resize_room(contents[0]);
         // tackle with other stuff
@@ -233,7 +282,6 @@ public class layoutScene : MonoBehaviour {
     }
     private void encode_and_send_input(String msg)
     {
-        msg = "abc\n";
         byte[] contents = Encoding.ASCII.GetBytes(msg);
         byte[] sendMsy = new byte[HeaderSize + contents.Length];
         byte[] widthBuf = BitConverter.GetBytes(msg.Length);
@@ -243,13 +291,17 @@ public class layoutScene : MonoBehaviour {
 
         //decoding :string someString = Encoding.ASCII.GetString(bytes);
         TcpClient.write(sendMsy, 0, sendMsy.Length);
+        TcpClient.doRead = true;
     }
     public void startToGenerate()
     {
         String sendOutMsg = "";
+        //todo:this is for debug only!!
+        addCustomObj(4);
+
         for (int i = 0; i < cateObjRecords.Count; i++)
             if (cateObjRecords[i] != 0){
-                sendOutMsg += i.ToString() + " " + cateObjRecords[i].ToString();
+                sendOutMsg += i.ToString() + " " + cateObjRecords[i].ToString() + ",";
                 cateObjRecords[i] = 0;
             }
         encode_and_send_input(sendOutMsg);

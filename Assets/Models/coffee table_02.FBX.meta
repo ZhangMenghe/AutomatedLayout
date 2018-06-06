@@ -1,0 +1,186 @@
+fileFormatVersion: 2
+guid: 958cbf91f69bb9b4aab300631ef9bb2e
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: 3dSolid
+    100002: 3dSolid 1
+    100004: 3dSolid 10
+    100006: 3dSolid 11
+    100008: 3dSolid 12
+    100010: 3dSolid 13
+    100012: 3dSolid 14
+    100014: 3dSolid 15
+    100016: 3dSolid 2
+    100018: 3dSolid 3
+    100020: 3dSolid 4
+    100022: 3dSolid 5
+    100024: 3dSolid 6
+    100026: 3dSolid 7
+    100028: 3dSolid 8
+    100030: 3dSolid 9
+    100032: 3dSolid001
+    100034: 3dSolid002
+    100036: 3dSolid003
+    100038: //RootNode
+    400000: 3dSolid
+    400002: 3dSolid 1
+    400004: 3dSolid 10
+    400006: 3dSolid 11
+    400008: 3dSolid 12
+    400010: 3dSolid 13
+    400012: 3dSolid 14
+    400014: 3dSolid 15
+    400016: 3dSolid 2
+    400018: 3dSolid 3
+    400020: 3dSolid 4
+    400022: 3dSolid 5
+    400024: 3dSolid 6
+    400026: 3dSolid 7
+    400028: 3dSolid 8
+    400030: 3dSolid 9
+    400032: 3dSolid001
+    400034: 3dSolid002
+    400036: 3dSolid003
+    400038: //RootNode
+    2100000: "\u0414\u0435\u0440\u0435\u0432\u043E \u043F\u043E\u043B\u0443\u043C\u0430\u0442\u043E\u0432\u043E\u0435"
+    2100002: "\u0414\u0435\u0440\u0435\u0432\u043E \u043C\u0430\u0442\u043E\u0432\u043E\u043502"
+    2100004: "\u0421\u0442\u0435\u043A\u043B\u043E \u0431\u0435\u0437 \u0442\u0435\u043D\u0435\u0439"
+    2300000: 3dSolid
+    2300002: 3dSolid 1
+    2300004: 3dSolid 10
+    2300006: 3dSolid 11
+    2300008: 3dSolid 12
+    2300010: 3dSolid 13
+    2300012: 3dSolid 14
+    2300014: 3dSolid 15
+    2300016: 3dSolid 2
+    2300018: 3dSolid 3
+    2300020: 3dSolid 4
+    2300022: 3dSolid 5
+    2300024: 3dSolid 6
+    2300026: 3dSolid 7
+    2300028: 3dSolid 8
+    2300030: 3dSolid 9
+    2300032: 3dSolid001
+    2300034: 3dSolid002
+    2300036: 3dSolid003
+    3300000: 3dSolid
+    3300002: 3dSolid 1
+    3300004: 3dSolid 10
+    3300006: 3dSolid 11
+    3300008: 3dSolid 12
+    3300010: 3dSolid 13
+    3300012: 3dSolid 14
+    3300014: 3dSolid 15
+    3300016: 3dSolid 2
+    3300018: 3dSolid 3
+    3300020: 3dSolid 4
+    3300022: 3dSolid 5
+    3300024: 3dSolid 6
+    3300026: 3dSolid 7
+    3300028: 3dSolid 8
+    3300030: 3dSolid 9
+    3300032: 3dSolid001
+    3300034: 3dSolid002
+    3300036: 3dSolid003
+    4300000: 3dSolid
+    4300002: 3dSolid
+    4300004: 3dSolid
+    4300006: 3dSolid
+    4300008: 3dSolid
+    4300010: 3dSolid
+    4300012: 3dSolid
+    4300014: 3dSolid
+    4300016: 3dSolid
+    4300018: 3dSolid
+    4300020: 3dSolid
+    4300022: 3dSolid
+    4300024: 3dSolid
+    4300026: 3dSolid
+    4300028: 3dSolid
+    4300030: 3dSolid
+    4300032: 3dSolid001
+    4300034: 3dSolid002
+    4300036: 3dSolid003
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

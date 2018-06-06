@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.WSA.Input;
 public class mainMenuController : MonoBehaviour {
     public Canvas addonMenu;
     public Transform fpsCam;
@@ -18,7 +18,20 @@ public class mainMenuController : MonoBehaviour {
     private List<Transform> MsgList = new List<Transform>();
     // Use this for initialization
     private layoutScene layoutScript;
+
+    private GestureRecognizer recognizer;
+
     void Start () {
+        recognizer = new GestureRecognizer();
+        if (addonMenu.renderMode == RenderMode.WorldSpace)
+        {
+            addonMenu.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(.0f, 1.47f, 0.8f);
+            addonMenu.GetComponent<RectTransform>().localScale = Vector3.one * 0.0005f;
+
+            GetComponent<RectTransform>().anchoredPosition3D = new Vector3(.0f, 1.5f, 0.65f);
+            GetComponent<RectTransform>().localScale = Vector3.one * 0.0005f;
+        }
+       
         addonMenu.enabled = false;
         layoutScript = layouterOjbect.GetComponent<layoutScene>();
         foreach (RectTransform child in buttonParent)
@@ -36,12 +49,20 @@ public class mainMenuController : MonoBehaviour {
             }
                
         }
-           
+        recognizer.Tapped += (args) =>
+        {
+            gameObject.SendMessageUpwards("changeAlphaCanvas", SendMessageOptions.DontRequireReceiver);
+        };
+        
     }
-	
-	// Update is called once per frame
-	void Update () {
-        for(int i=0; i< buttonList.Count; i++)
+	void changeAlphaCanvas()
+    {
+        GetComponent<CanvasGroup>().alpha = (GetComponent<CanvasGroup>().alpha == 1) ?0.1f:1.0f;
+    }
+    // Update is called once per frame
+    void Update () {
+        recognizer.StartCapturingGestures();
+        for (int i=0; i< buttonList.Count; i++)
         {
             if (nextButtonPos[i] != -1)
             {
