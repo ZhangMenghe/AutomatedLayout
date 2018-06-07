@@ -1,9 +1,10 @@
 import numpy as np
 import cv2
 import math
+from camera import getCameraParam
 from depthImgProcessor import processDepthImage
 from utils import setupInputMatrix,non_max_supression
-# from plotHelper import plot3dHeightMap
+from plotHelper import plot3dHeightMap
 from utils import rotatePC
 def getContourHeight(obstaclBoxes, heightMap):
     contourHeights = []
@@ -78,8 +79,9 @@ Tackle with depth images ONLY and transform depth images to heigt mask
 No labels needed for this phase
 '''
 class depth2HeightMskHelper(object):
-    def __init__(self):
+    def __init__(self, cameraMatrix, useHHA=False):
         self.depthImage = None
+        self.useHHA = useHHA
         self.HHA = None
         self.heightMap = None
         #[minX, maxX, minZ, maxZ] in real world
@@ -93,9 +95,12 @@ class depth2HeightMskHelper(object):
         self.contourHeights = None
         self.obstaclBoxes = None
         self.img2RealCoord = None
-    def fit(self, depthAddr = None, rawDepthAddr = None, camAddr=None, generateHAA=True, forwardMethod = False):
-        self.depthImage, missingMask, cameraMatrix = setupInputMatrix(depthAddr, rawDepthAddr, camAddr)
-        self.getHeightMap(missingMask, cameraMatrix, generateHAA)
+        self.cameraMatrix = cameraMatrix
+        if(self.cameraMatrix == None):
+            self.cameraMatrix=getCameraParam()
+    def fit(self, depth, missingMsk, forwardMethod = False):
+        self.depthImage = depth
+        self.getHeightMap(missingMsk)
         if(forwardMethod):
             tmpContours, mapsize = getObstacleMask(self.heightMap)
             self.contours, self.obstaclBoxes,_ = RemoveContourOverlapping(tmpContours, mapsize)
@@ -115,11 +120,11 @@ class depth2HeightMskHelper(object):
         I[:,:,2] = (angle + 128-90)
         self.HHA = I.astype(np.uint8)
 
-    def getHeightMap(self, missingMask, cameraMatrix, generateHAA):
+    def getHeightMap(self, missingMask):
         height, width = self.depthImage.shape
-        pc, N, yDir, h, R = processDepthImage(self.depthImage, missingMask, cameraMatrix)
+        pc, N, yDir, h, R = processDepthImage(self.depthImage, missingMask, self.cameraMatrix)
         pcRot = rotatePC(pc, R)
-        if(generateHAA):
+        if(self.useHHA):
             self.getHHAImage(pc, N, yDir, h)
 
         # where each pixel will be located in 3d world

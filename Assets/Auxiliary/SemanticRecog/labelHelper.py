@@ -11,13 +11,12 @@ This class is used to optimize those obstacle from heightMap by classification r
 '''
 class labelHelper(object):
     """docstring for labelHelper."""
-    def __init__(self, classifier = None, fwRemovalRatio = 0.8, shrinkF = 1.5):
+    def __init__(self, fwRemovalRatio = 0.8, shrinkF = 1.5, HomoMatrix = None):
         # imgBounds: minx, maxx, minz, maxz
         self.imgbounds = None
         self.contours = None
         self.height2Img = None
         self.img2Height = None
-        self.classifier = classifier
         self.fwRemovalRatio = fwRemovalRatio
         # refined results with labels from NN result
         self.boundingBoxes = None
@@ -32,6 +31,7 @@ class labelHelper(object):
         self.sceneMatList = None
         self.sceneMat = None
         self.shrinkF = shrinkF
+        self.HomoMatrix = HomoMatrix
         self.cate = ["unknown", "floor ","sofa ","chair ","bed ","NightStand","shelf","table","wall","onwallObjs","otherFurniture","ceiling"]
         self.labelColor = {0:[0,0,0], 1:[173,216,230], 2:[139, 0 ,139], 3:[255,0,0], 4:[156, 156, 156], 5:[0,255,0],\
         6:[255,165,0], 7:[173,255,47],8:[255, 228, 225],9:[159, 121, 238],10:[139,69,0],11:[255,106,106],12:[0,0,255],13:[255,2552,255]}
@@ -39,7 +39,7 @@ class labelHelper(object):
         # self.labelDict = {"bed":1, "books":2, "ceiling":3, "chair":4, "floor":5, "furniture":6, "objects":7, "pics":8, "sofa":9, "table":10, "tv":11, "wall":12, "window":13 }
         # self.getObstacleLabels()
 
-    def fit(self, depthHelper,labelName=None, labelFile=None, forwardMethod = True):
+    def fit(self, depthHelper, labelImg, forwardMethod = False):
         self.boxLabel = []
         self.mergeIdx = []
         self.rotatedBox = []
@@ -58,19 +58,12 @@ class labelHelper(object):
         self.heightMapMsk = np.zeros(depthHelper.heightMatBounds, dtype=np.uint8)
         self.sceneMat = np.zeros([int(self.heightMap.shape[0]/self.shrinkF)+1,int(self.heightMap.shape[1]/self.shrinkF)+1 ])
         self.camCenter = (int(-self.imgbounds[0]- self.sceneMat.shape[1]/2), int(self.sceneMat.shape[0] / 2 - (self.imgbounds[3]- self.imgbounds[2])))
-        # self.getObstacleLabels(labelName, labelFile)
-        self.combineHeightAndLabel(labelName, labelFile, forwardMethod)
-    def combineHeightAndLabel(self, labelName, labelFile, forwardMethod):
-        if(self.classifier and labelName):
-            labelImg = self.classifier.fit(labelName,self.HHA)
-        elif(labelFile):
-            labelImg = cv2.imread(labelFile, 0)
-        else:
-            return False
-        labelImg = cv2.resize(labelImg, (self.img2Height.shape[1], self.img2Height.shape[0]), interpolation=cv2.INTER_NEAREST).astype(int)
-        decoded = self.classifier.dataset.decode_segmap(labelImg)
-        # cv2.imshow("resized", decoded)
-        # cv2.waitKey(0)
+        self.combineHeightAndLabel(labelImg, forwardMethod)
+    def combineHeightAndLabel(self, labelImg, forwardMethod):
+        # TODO: Change a method pls
+        # to avoid shrink of label image, no this problem for
+        if(self.HomoMatrix is None):
+            labelImg = cv2.resize(labelImg, (self.img2Height.shape[1], self.img2Height.shape[0]), interpolation=cv2.INTER_NEAREST).astype(int)
         if(forwardMethod):
             self.getObstacleLabels(labelImg)
         else:
@@ -90,26 +83,29 @@ class labelHelper(object):
         # plt.legend()
         # plt.show()
     def getObstacleRealWorld(self, labelImg):
-        denoteList =[n for n in np.unique(labelImg) if n not in [1,8,9,11]]
+        denoteList =[n for n in np.unique(labelImg) if n in [0,7]] #[1,8,9,11]]
         # WALL
-        wallMat = np.zeros(self.sceneMat.shape)
-        ybound, xbound = self.sceneMat.shape[0] /2, self.sceneMat.shape[1] /2
-        xdata,ydata = [],[]
-        for cate in [8,9]:
-            mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
-            for loc in mappedLoc:
-                xdata.append(int(loc[1]/self.shrinkF))
-                ydata.append(int(loc[0]/self.shrinkF))
-                wallMat[ydata[-1],xdata[-1]] = 255
-        xdata = (np.array(xdata) - xbound).astype(int)
-        ydata = (ybound - np.array(ydata)).astype(int)
-
-        cv2.imshow("wall", wallMat)
+        # wallMat = np.zeros(self.sceneMat.shape)
+        # ybound, xbound = self.sceneMat.shape[0] /2, self.sceneMat.shape[1] /2
+        # xdata,ydata = [],[]
+        # for cate in [8,9]:
+        #     mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
+        #     for loc in mappedLoc:
+        #         xdata.append(int(loc[1]/self.shrinkF))
+        #         ydata.append(int(loc[0]/self.shrinkF))
+        #         wallMat[ydata[-1],xdata[-1]] = 255
+        # xdata = (np.array(xdata) - xbound).astype(int)
+        # ydata = (ybound - np.array(ydata)).astype(int)
+        #
+        # cv2.imshow("wall", wallMat)
         # cv2.waitKey(0)
-        self.fitWall(xdata, ydata)
-
+        # self.fitWall(xdata, ydata)
+        ########endwall##############
         for cate in denoteList:
-            mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
+            if(self.HomoMatrix is not None):
+                mappedLoc = cv2.perspectiveTransform(np.where(labelImg==cate), self.HomoMatrix)
+            else:
+                mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
             for loc in mappedLoc:
                 self.sceneMat[int(loc[0]/self.shrinkF),int(loc[1]/self.shrinkF)] = cate
 
@@ -165,7 +161,7 @@ class labelHelper(object):
         for cate in np.unique(self.sceneMat):
             rgbView[self.sceneMat == cate] = self.labelColor[cate]
         res = cv2.drawContours(rgbView, self.rotatedBox, -1,  (0,255,0), 2)
-
+        #
         # cv2.circle(rgbView, (int(self.sceneMat.shape[1]/2), int(self.imgbounds[3] - self.imgbounds[2])), 5, (0,0,255))
         # cv2.imshow("res", rgbView)
         # cv2.waitKey(0)

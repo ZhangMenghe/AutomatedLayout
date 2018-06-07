@@ -9,14 +9,14 @@ from scipy import misc, ndimage
 from depth2HeightMskHelper import *
 from labelHelper import *
 
-import layers_builder as layers
-from python_utils import utils
-from python_utils.preprocessing import preprocess_img
-
-import tensorflow as tf
-from keras import backend as K
-from keras.models import model_from_json, load_model
-from keras.utils.generic_utils import CustomObjectScope
+# import layers_builder as layers
+# from python_utils import utils
+# from python_utils.preprocessing import preprocess_img
+#
+# import tensorflow as tf
+# from keras import backend as K
+# from keras.models import model_from_json, load_model
+# from keras.utils.generic_utils import CustomObjectScope
 
 class pspClassifierKeras(object):
     def __init__(self, weightPath, nb_classes = 150, resnet_layers=50, input_shape=(473, 473)):
@@ -72,27 +72,28 @@ class pspClassifierKeras(object):
         return prediction
 
 class processScene(object):
-    def __init__(self, modelFilePath):
-        tf_config = tf.ConfigProto()
-        tf_config.gpu_options.allow_growth = True
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    def __init__(self, modelFilePath, cameraMatrix = None):
+        # tf_config = tf.ConfigProto()
+        # tf_config.gpu_options.allow_growth = True
+        # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        # # session and run
+        # self.sess = tf.Session()
+        # K.set_session(self.sess)
+        # with self.sess.as_default():
+        #     self.classifier = pspClassifierKeras(modelFilePath)
+        self.depthHelper = depth2HeightMskHelper(cameraMatrix)
+        self.labelHelper = labelHelper()
+    def fit(self, img, depth, missingMsk):
+        self.depthHelper.fit(depth, missingMsk)
+        labelImg = np.load('data.npy')
 
-        # session and run
-        self.sess = tf.Session()
-        K.set_session(self.sess)
-        with self.sess.as_default():
-            self.classifier = pspClassifierKeras(modelFilePath)
+        # with self.sess.as_default():
+        #     self.classifier.predict(img)
+        #     np.save('data', self.classifier.labels)
+            # labelImg = self.classifier.labels
+            # misc.imsave('outputTest.png', self.classifier.labels)
+        self.labelHelper.fit(self.depthHelper, labelImg)
 
-        # self.depthHelper = depth2HeightMskHelper()
-        # self.labelHelper = labelHelper(classifier = self.classifier)
-    def fit(self, img, depth=None, camMat=None, rawDepth=None):
-        with self.sess.as_default():
-            self.classifier.predict(img)
-            misc.imsave('outputTest.png', self.classifier.labels)
-        # self.depthHelper.fit(depthAddr,rawDepthAddr,camAddr,forwardMethod=forwardMethod)
-        # if(forwardMethod and self.depthHelper.detectedBoxes == 0):
-        #     return None
-        # self.labelHelper.fit(self.depthHelper, labelName = imgName, forwardMethod = forwardMethod)
     def save(self, obstacleName, heigtMapName):
         self.labelHelper.writeObstacles2File(obstacleName)
         # saveOpencvMatrix(heigtMapName, self.depthHelper.heightMap)
@@ -103,12 +104,21 @@ if __name__ == "__main__":
     modelFilePath = rootpath + "weights/pspnet50_ade20k"
     resForInputFile = rootpath + "intermediate/fixedObj.txt"
     resForHeightMap = rootpath + "intermediate/heightMapData.yml"
+
+
+    ##################debug input#############
     srcImgPath = rootpath+'imgs/'
-    srcImgName = "2483.jpg"
-    img = misc.imread(srcImgPath + srcImgName, mode='RGB')
+    depthAddr = rootpath+'depth/'
+    rawDepthAddr = rootpath+'depth_raw/'
+    srcImgName = "2483"
+    ext = ['.jpg', '.png']
+    img = misc.imread(srcImgPath + srcImgName + ext[0], mode='RGB')
+    depthImage = misc.imread(depthAddr+ srcImgName + ext[1], mode='F').astype(float)/100
+    missingMask = (misc.imread(rawDepthAddr+srcImgName + ext[1], mode='F').astype(float) == 0)
+    ##########################################
 
     processor = processScene(modelFilePath)
-    processor.fit(img)
+    processor.fit(img, depthImage, missingMask)
 
     # d2tTester = depth2maskTester(rootpath, srcImgPath, modelFilePath)
     # filenameSet = listdir(srcImgPath)
