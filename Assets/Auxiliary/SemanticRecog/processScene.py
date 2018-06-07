@@ -72,7 +72,7 @@ class pspClassifierKeras(object):
         return prediction
 
 class processScene(object):
-    def __init__(self, modelFilePath, cameraMatrix = None):
+    def __init__(self, modelFilePath, cameraMatrix = None, HomoMatrix = None):
         # tf_config = tf.ConfigProto()
         # tf_config.gpu_options.allow_growth = True
         # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -82,7 +82,7 @@ class processScene(object):
         # with self.sess.as_default():
         #     self.classifier = pspClassifierKeras(modelFilePath)
         self.depthHelper = depth2HeightMskHelper(cameraMatrix)
-        self.labelHelper = labelHelper()
+        self.labelHelper = labelHelper(HomoMatrix)
     def fit(self, img, depth, missingMsk):
         self.depthHelper.fit(depth, missingMsk)
         labelImg = np.load('data.npy')
@@ -94,17 +94,18 @@ class processScene(object):
             # misc.imsave('outputTest.png', self.classifier.labels)
         self.labelHelper.fit(self.depthHelper, labelImg)
 
-    def save(self, obstacleName, heigtMapName):
+    def save(self, obstacleName, heigtMapName, floorMapName):
         self.labelHelper.writeObstacles2File(obstacleName)
-        # saveOpencvMatrix(heigtMapName, self.depthHelper.heightMap)
+        np.save(heigtMapName, self.depthHelper.heightMap)
+        np.save(floorMapName, self.labelHelper.floorMat)
 
 
 if __name__ == "__main__":
     rootpath = '../../InputData/'
     modelFilePath = rootpath + "weights/pspnet50_ade20k"
     resForInputFile = rootpath + "intermediate/fixedObj.txt"
-    resForHeightMap = rootpath + "intermediate/heightMapData.yml"
-
+    resForHeightMap = rootpath + "intermediate/heightMapData"
+    resForFloor = rootpath + "intermediate/floorMapData"
 
     ##################debug input#############
     srcImgPath = rootpath+'imgs/'
@@ -117,9 +118,9 @@ if __name__ == "__main__":
     missingMask = (misc.imread(rawDepthAddr+srcImgName + ext[1], mode='F').astype(float) == 0)
     ##########################################
 
-    processor = processScene(modelFilePath)
+    processor = processScene(modelFilePath, HomoMatrix = np.load(rootpath + 'homoMat.npy'))
     processor.fit(img, depthImage, missingMask)
-
+    processor.save(resForInputFile, resForHeightMap, resForFloor)
     # d2tTester = depth2maskTester(rootpath, srcImgPath, modelFilePath)
     # filenameSet = listdir(srcImgPath)
     # for name in filenameSet:

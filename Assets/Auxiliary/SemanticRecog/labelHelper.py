@@ -32,9 +32,12 @@ class labelHelper(object):
         self.sceneMat = None
         self.shrinkF = shrinkF
         self.HomoMatrix = HomoMatrix
+        self.floorMat = None
         self.cate = ["unknown", "floor ","sofa ","chair ","bed ","NightStand","shelf","table","wall","onwallObjs","otherFurniture","ceiling"]
         self.labelColor = {0:[0,0,0], 1:[173,216,230], 2:[139, 0 ,139], 3:[255,0,0], 4:[156, 156, 156], 5:[0,255,0],\
         6:[255,165,0], 7:[173,255,47],8:[255, 228, 225],9:[159, 121, 238],10:[139,69,0],11:[255,106,106],12:[0,0,255],13:[255,2552,255]}
+        # 7 bed 19 chair 24 shelf 33 desk 15 table 40 stand 64 coffee table
+        # self.InterestedCate = {3:0, 7:1,15:2, 19:3, 24:4, 33:5, 40:6, 60:7}
 
         # self.labelDict = {"bed":1, "books":2, "ceiling":3, "chair":4, "floor":5, "furniture":6, "objects":7, "pics":8, "sofa":9, "table":10, "tv":11, "wall":12, "window":13 }
         # self.getObstacleLabels()
@@ -58,7 +61,19 @@ class labelHelper(object):
         self.heightMapMsk = np.zeros(depthHelper.heightMatBounds, dtype=np.uint8)
         self.sceneMat = np.zeros([int(self.heightMap.shape[0]/self.shrinkF)+1,int(self.heightMap.shape[1]/self.shrinkF)+1 ])
         self.camCenter = (int(-self.imgbounds[0]- self.sceneMat.shape[1]/2), int(self.sceneMat.shape[0] / 2 - (self.imgbounds[3]- self.imgbounds[2])))
+
+        self.camCenter_pix = (-self.imgbounds[0], self.imgbounds[3]-self.imgbounds[2])
+
         self.combineHeightAndLabel(labelImg, forwardMethod)
+
+
+        # denoteHuman = cv2.circle(self.floorMat,(-self.imgbounds[0], self.imgbounds[3]-self.imgbounds[2]),5,(255,0,0),4)
+        # cv2.imshow('denoteHuman', denoteHuman)
+        #
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # cv2.waitKey(1)
+
     def combineHeightAndLabel(self, labelImg, forwardMethod):
         # TODO: Change a method pls
         # to avoid shrink of label image, no this problem for
@@ -83,7 +98,9 @@ class labelHelper(object):
         # plt.legend()
         # plt.show()
     def getObstacleRealWorld(self, labelImg):
-        denoteList =[n for n in np.unique(labelImg) if n in [0,7]] #[1,8,9,11]]
+        denoteList =[n for n in np.unique(labelImg) if n in [3, 7, 19, 24, 33, 15, 40, 64]] #[1,8,9,11]]
+
+
         # WALL
         # wallMat = np.zeros(self.sceneMat.shape)
         # ybound, xbound = self.sceneMat.shape[0] /2, self.sceneMat.shape[1] /2
@@ -103,6 +120,7 @@ class labelHelper(object):
         ########endwall##############
         for cate in denoteList:
             if(self.HomoMatrix is not None):
+                print("dont come in ")
                 mappedLoc = cv2.perspectiveTransform(np.where(labelImg==cate), self.HomoMatrix)
             else:
                 mappedLoc = self.img2Height[np.where(labelImg==cate)]#self.img2RealCoord[floorLocs]
@@ -116,11 +134,16 @@ class labelHelper(object):
         for cate in denoteList:
             cate_sceneMat = np.zeros(self.sceneMat.shape)
             cate_sceneMat[self.sceneMat == cate] = 1
-            # cv2.imshow("cate-"+str(cate),cate_sceneMat)
-            # cv2.waitKey(0)
-            self.sceneMatList.append(cate_sceneMat)
+            # just save floor
+            if(cate == 3):
+                self.floorMat = cate_sceneMat
+            else:
+                self.sceneMatList.append(cate_sceneMat)
+        if(3 in denoteList):
+            denoteList.remove(3)
         self.boxLabel = denoteList
 
+        # print(self.boxLabel)
         # cv2.imshow("label",self.sceneMat)
         # cv2.imshow("height",self.heightMap)
         # cv2.waitKey(0)
@@ -134,7 +157,7 @@ class labelHelper(object):
         mapsize = self.sceneMat.shape[0] * self.sceneMat.shape[1]
         for i, cate_sceneMat in enumerate(self.sceneMatList):
             # if(self.boxLabel[i] == 4):
-            imgray = cate_sceneMat.astype(np.uint8)
+            imgray = (cate_sceneMat * 255).astype(np.uint8)
             im_close = cv2.morphologyEx(imgray, cv2.MORPH_CLOSE,  cv2.getStructuringElement(cv2.MORPH_RECT, (5,5)))
             _, cate_contours, _  = cv2.findContours(im_close, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             cate_contours,cate_boundings,cate_ids = RemoveContourOverlapping(cate_contours,mapsize,threshold=0.5)
@@ -156,11 +179,12 @@ class labelHelper(object):
             self.rotatedRect.append(rect)
         self.contourHeights =  getContourHeight(boundingBoxes, self.heightMap)
 
+        # FOR DEBUG ONLY: SEE RGB IMAGE
         print("labels-" + str(self.boxLabel))
-        rgbView =  np.zeros([self.sceneMat.shape[0],self.sceneMat.shape[1],3],dtype= np.uint8)
-        for cate in np.unique(self.sceneMat):
-            rgbView[self.sceneMat == cate] = self.labelColor[cate]
-        res = cv2.drawContours(rgbView, self.rotatedBox, -1,  (0,255,0), 2)
+        # rgbView =  np.zeros([self.sceneMat.shape[0],self.sceneMat.shape[1],3],dtype= np.uint8)
+        # for cate in np.unique(self.sceneMat):
+        #     rgbView[self.sceneMat == cate] = [255,0,0]#self.labelColor[self.InterestedCate[cate]]
+        # res = cv2.drawContours(rgbView, self.rotatedBox, -1,  (0,255,0), 2)
         #
         # cv2.circle(rgbView, (int(self.sceneMat.shape[1]/2), int(self.imgbounds[3] - self.imgbounds[2])), 5, (0,0,255))
         # cv2.imshow("res", rgbView)
@@ -304,7 +328,7 @@ class labelHelper(object):
         cv2.imshow("aftRot", rgbView)
         cv2.waitKey(0)
     def writeObstacles2File(self, filename):
-        self.alignWall()
+        # self.alignWall()
         rotatedBox = np.array(self.rotatedBox, dtype=float)
         prefix = 'objFixed : '
         prefix2 = 'group: '
@@ -315,7 +339,7 @@ class labelHelper(object):
                 # fill vertices
                 vertices = self.rotatedBox[i]
                 for idx in vertexIdx:
-                    content+=str(vertices[idx][0]) + ' ' + str(vertices[idx][1])+ ' '
+                    content += str(vertices[idx][0]) + ' ' + str(vertices[idx][1])+ ' '
                 # center, size, angle
                 for idx, item in enumerate(rect):
                     if(idx<2):
