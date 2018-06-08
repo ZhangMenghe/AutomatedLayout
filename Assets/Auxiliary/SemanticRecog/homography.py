@@ -83,7 +83,7 @@ if len(good)>MIN_MATCH_COUNT:
     dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
 
     M, mask = cv2.findHomography(corners, corners2, cv2.RANSAC,5.0)
-    print(M)
+    np.save('homoMat', M)
     matchesMask = mask.ravel().tolist()
 
     h,w = img1.shape
