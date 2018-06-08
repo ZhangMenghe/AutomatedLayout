@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import math
-from camera import getCameraParam
+
 from depthImgProcessor import processDepthImage
 from utils import setupInputMatrix,non_max_supression
 from plotHelper import plot3dHeightMap
@@ -79,7 +79,7 @@ Tackle with depth images ONLY and transform depth images to heigt mask
 No labels needed for this phase
 '''
 class depth2HeightMskHelper(object):
-    def __init__(self, cameraMatrix, useHHA=False):
+    def __init__(self, cameraHelper, useHHA=False):
         self.depthImage = None
         self.useHHA = useHHA
         self.HHA = None
@@ -95,12 +95,11 @@ class depth2HeightMskHelper(object):
         self.contourHeights = None
         self.obstaclBoxes = None
         self.img2RealCoord = None
-        self.cameraMatrix = cameraMatrix
-        if(self.cameraMatrix == None):
-            self.cameraMatrix=getCameraParam()
+        self.cameraMatrix = cameraHelper.cameraMatrix
     def fit(self, depth, missingMsk, forwardMethod = False):
         self.depthImage = depth
         self.getHeightMap(missingMsk)
+        print("check4")
         if(forwardMethod):
             tmpContours, mapsize = getObstacleMask(self.heightMap)
             self.contours, self.obstaclBoxes,_ = RemoveContourOverlapping(tmpContours, mapsize)
@@ -133,7 +132,7 @@ class depth2HeightMskHelper(object):
 
         # [minX, maxX, minZ, maxZ]
         self.imgbounds = [np.min(roundX), np.max(roundX), np.min(roundZ), np.max(roundZ)]
-
+        print(self.imgbounds)
         x_range = self.imgbounds[1] - self.imgbounds[0] + 1
         z_range = self.imgbounds[3] - self.imgbounds[2] + 1
 
@@ -153,11 +152,15 @@ class depth2HeightMskHelper(object):
                 tz = roundZ[i,j]
                 self.img2Height[i,j] = [mat_boundz - tz, tx]
                 # boudz-z cause we will flipup heightMap later
+                '''
                 idx_height = (mat_boundz - tz) * mat_boundx + tx
+                print(idx_height)
+                print(len(self.height2Img))
                 if(self.height2Img[idx_height]):
                     self.height2Img[idx_height].append(i*width + j)
                 else:
                     self.height2Img[idx_height] = [i*width + j]
+                '''
                 if h[i,j]<self.heightMap[tz,tx]:
                     self.heightMap[tz,tx] = h[i,j]
         self.heightMap[np.where(self.heightMap==np.inf)] = 0
