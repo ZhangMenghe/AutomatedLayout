@@ -216,13 +216,24 @@ public class Client : MonoBehaviour
           sendingData = true;
      }
      
-     public String receive(){
-        received = "1 0 4 180 200 90 -24.327446 -59.990002 0.000000 1.570796 82.000679 59.990002 0.000000 1.570796 -36.601913 -59.990002 0.000000 1.570796";
-        //received = "1 0 0 50 40 70 0 0 0 0";
-        //received = "1 0 8 120 60 80 0 0 0 0";
-        //received = "家具数，id, cate, width ,height, zheight + (recommendation) cx, cy, cz, rot"
-        return received;
-    }
+     public String receive(int index)
+     {
+          if (index == 0)
+          {
+               var received2 =
+                    "2 0 4 180 200 90 1 8 120 80 80 -100 0 0 -1.570796 0 -60 0 1.570796 110 50 0 0 160 50 0 0 -100 110 0 -1.570796 -100 110 0 -1.570796"; //-24.327446 -59.990002 0.000000 1.570796 82.000679 59.990002 0.000000 1.570796 -36.601913 -59.990002 0.000000 1.570796  ";
+               return received2;
+          }
+          else
+          {
+               var received =
+                    "4 0 0 40 40 70 1 0 40 40 70 2 0 40 40 70 3 0 40 40 70 40 80 0 3.14 40 -80 0 0 -40 80 0 3.14 -40 -80 0 0";
+               //received = "1 0 0 50 40 70 0 0 0 0";
+               //received = "1 0 8 120 60 80 0 0 0 0";
+               //received = "家具数，id, cate, width ,height, zheight + (recommendation) cx, cy, cz, rot"
+               return received;
+          }
+     }
 
      public void ExchangePackets()
      {

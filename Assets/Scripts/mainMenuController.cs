@@ -28,8 +28,8 @@ public class mainMenuController : MonoBehaviour {
             addonMenu.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(.0f, 1.47f, 0.8f);
             addonMenu.GetComponent<RectTransform>().localScale = Vector3.one * 0.0005f;
 
-            GetComponent<RectTransform>().anchoredPosition3D = new Vector3(.0f, 1.5f, 0.65f);
-            GetComponent<RectTransform>().localScale = Vector3.one * 0.0005f;
+            //GetComponent<RectTransform>().anchoredPosition3D = new Vector3(.0f, 1.5f, 0.65f);
+            //GetComponent<RectTransform>().localScale = Vector3.one * 0.0005f;
         }
        
         addonMenu.enabled = false;

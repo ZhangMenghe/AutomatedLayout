@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4820418901101458}
   - component: {fileID: 33483281222976444}
   - component: {fileID: 23312386515379924}
+  - component: {fileID: 65318018275923672}
   m_Layer: 0
   m_Name: mNightstand
   m_TagString: Untagged
@@ -34,13 +35,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1467603672111966}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 5.463467, y: 10.74011, z: -23.536621}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!23 &23312386515379924
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -86,3 +87,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1467603672111966}
   m_Mesh: {fileID: 4300000, guid: 23d8fdcaead72e84b819da92d23ec8d8, type: 3}
+--- !u!65 &65318018275923672
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1467603672111966}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.6604, y: 0.55880016, z: 0.7112002}
+  m_Center: {x: 0, y: 0, z: 0}
